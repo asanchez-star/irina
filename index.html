@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fábrica de Cuentos Colectivos - Taller Creativo Seguro</title>
+  <meta name="description" content="Taller de creación narrativa y escritura creativa asistida por agentes pedagógicos para niños de 9 a 12 años.">
+  
+  <!-- Tipografías Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Encabezado Principal -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-badge">
+        <span class="logo-icon">🏭✨</span>
+        <div class="logo-text">
+          <h1>Fábrica de Cuentos Colectivos</h1>
+          <p class="tagline">Taller de escritura colaborativa con Inteligencia Artificial</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="story-title-container">
+        <span class="title-icon">📖</span>
+        <input type="text" id="storyTitle" class="story-title-input" placeholder="Escribe aquí el título de tu cuento..." value="La Llave de los Susurros">
+      </div>
+    </div>
+
+    <div class="header-right">
+      <!-- Selector del Alumno Activo -->
+      <div class="student-selector-badge" id="studentSelectorBadge" title="Alumno actual en el taller de escritura">
+        <span class="student-avatar-mini" id="headerStudentAvatar">👧</span>
+        <select id="selectActiveStudent" class="student-select-header" aria-label="Cambiar alumno activo">
+          <!-- Opciones dinámicas inyectadas por JS -->
+        </select>
+      </div>
+
+      <!-- Widget de Consumo y Presupuesto IA -->
+      <button id="btnCostWidget" class="cost-widget-badge" title="Control de consumo de IA y tokens (Hacer clic para gestionar)">
+        <span class="cost-icon">💳</span>
+        <div class="cost-info">
+          <div class="cost-bar-mini">
+            <div id="headerBudgetBar" class="cost-bar-fill" style="width: 28%"></div>
+          </div>
+          <span class="cost-text" id="headerCostText">$1.42 / $5.00</span>
+        </div>
+      </button>
+
+      <!-- Botón Panel Docente -->
+      <button id="btnOpenTeacherPanel" class="btn-teacher" title="Abrir Panel de Evaluación y Seguimiento Docente">
+        <span>👩‍🏫</span> Panel Docente
+      </button>
+
+      <!-- Botón de Acceso / Sesión Supabase -->
+      <button id="btnOpenAuthModal" class="btn-secondary btn-auth-badge" title="Iniciar sesión como Docente o Alumno con código">
+        <span id="authBadgeIcon">🔐</span> <span id="authBadgeText">Acceso</span>
+      </button>
+
+      <div class="safe-badge" title="Moderador Pedagógico activo y filtrando contenidos">
+        <span class="shield-pulse">🛡️</span>
+        <span class="safe-text">Taller 100% Seguro</span>
+      </div>
+      <button id="btnReadMode" class="btn-secondary" title="Leer en modo libro mágico">
+        <span>✨</span> Modo Lectura
+      </button>
+      <button id="btnPrintStory" class="btn-secondary" title="Imprimir o guardar como PDF">
+        <span>🖨️</span> Imprimir
+      </button>
+    </div>
+  </header>
+
+  <!-- Barra de Navegación Móvil (Visible solo en celulares y tablets < 1024px) -->
+  <nav class="mobile-views-nav" id="mobileViewsNav" aria-label="Navegación móvil del taller">
+    <button type="button" class="mobile-view-btn" data-mview="mapa" id="mbtnViewMapa">
+      <span class="mview-icon">🗺️</span>
+      <span class="mview-label">Mapa e Ideas</span>
+    </button>
+    <button type="button" class="mobile-view-btn active" data-mview="taller" id="mbtnViewTaller">
+      <span class="mview-icon">✍️</span>
+      <span class="mview-label">Taller de Escritura</span>
+    </button>
+    <button type="button" class="mobile-view-btn" data-mview="agentes" id="mbtnViewAgentes">
+      <span class="mview-icon">🤖</span>
+      <span class="mview-label">Consejo de Agentes</span>
+    </button>
+  </nav>
+
+  <!-- Contenedor Principal (3 Columnas en Escritorio, Pestañas en Móvil) -->
+  <main class="app-main" id="appMain" data-mobile-active="taller">
+    
+    <!-- COLUMNA 1: Mapa de la Historia y Personajes -->
+    <aside class="panel panel-left" aria-label="Mapa de la historia">
+      <div class="panel-header">
+        <h2>🗺️ Mapa de la Historia</h2>
+        <span class="badge-step" id="badgeCurrentStep">Inicio</span>
+      </div>
+
+      <div class="panel-scroll-content">
+        <!-- Selector de Estructura Narrativa -->
+        <section class="story-structure-card">
+          <h3 class="section-title">Estructura del Relato</h3>
+          <ul class="progress-steps" id="progressStepsList">
+            <li class="step-item active" data-phase="inicio">
+              <span class="step-bullet">1</span>
+              <div class="step-info">
+                <strong>Inicio</strong>
+                <small>Presenta a tus personajes y el lugar.</small>
+              </div>
+              <span class="step-check" id="checkInicio">⏳</span>
+            </li>
+            <li class="step-item" data-phase="nudo">
+              <span class="step-bullet">2</span>
+              <div class="step-info">
+                <strong>Nudo o Conflicto</strong>
+                <small>¡Aparece un enigma o desafío!</small>
+              </div>
+              <span class="step-check" id="checkNudo">⚪</span>
+            </li>
+            <li class="step-item" data-phase="desenlace">
+              <span class="step-bullet">3</span>
+              <div class="step-info">
+                <strong>Desenlace</strong>
+                <small>¿Cómo resuelven el misterio?</small>
+              </div>
+              <span class="step-check" id="checkDesenlace">⚪</span>
+            </li>
+          </ul>
+        </section>
+
+        <!-- Ficha de Personajes y Objetos -->
+        <section class="characters-card">
+          <div class="section-header-row">
+            <h3 class="section-title">👥 Personajes y Elementos</h3>
+            <button id="btnAddCharacter" class="btn-micro" title="Agregar personaje">+ Nuevo</button>
+          </div>
+          <div class="character-tags" id="characterList">
+            <span class="character-tag">🐱 Miaufo (el gato sabio)</span>
+            <span class="character-tag">🗝️ Llave de bronce</span>
+            <span class="character-tag">👧 Sofi (la curiosa)</span>
+          </div>
+        </section>
+
+        <!-- Galería de Visiones del Ilustrador -->
+        <section class="illustrations-card">
+          <div class="section-header-row">
+            <h3 class="section-title">🎨 Visiones e Ideas</h3>
+          </div>
+          <div class="ideas-feed" id="ideasFeed">
+            <div class="idea-item">
+              <div class="idea-icon">💡</div>
+              <p>El sol atardeciendo ilumina el ático con destellos color miel.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Semáforo de Estadísticas -->
+      <footer class="panel-footer-stats">
+        <div class="stat-box">
+          <span class="stat-number" id="wordCount">0</span>
+          <span class="stat-label">Palabras</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-number" id="readingTime">1 min</span>
+          <span class="stat-label">Lectura</span>
+        </div>
+      </footer>
+    </aside>
+
+    <!-- COLUMNA 2: Taller del Autor (Editor de Texto) -->
+    <section class="panel panel-center" aria-label="Taller de escritura">
+      <div class="editor-toolbar">
+        <div class="toolbar-group">
+          <button id="btnToolBold" class="tool-btn" title="Negrita"><b>B</b></button>
+          <button id="btnToolItalic" class="tool-btn" title="Cursiva"><i>I</i></button>
+          <button id="btnToolDialogue" class="tool-btn tool-btn-wide" title="Insertar raya de diálogo">
+            <span>—</span> Raya de diálogo
+          </button>
+        </div>
+
+        <div class="toolbar-group">
+          <button id="btnListenSpeech" class="tool-btn tool-btn-highlight" title="Escuchar el cuento en voz alta">
+            <span>🔊</span> Escuchar
+          </button>
+          <button id="btnClearEditor" class="tool-btn" title="Limpiar borrador">
+            <span>🗑️</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Área de Redacción -->
+      <div class="editor-container">
+        <div 
+          id="storyEditor" 
+          class="story-editor" 
+          contenteditable="true" 
+          role="textbox" 
+          aria-multiline="true"
+          data-placeholder="Había una vez, en un rincón secreto del antiguo colegio, una pequeña puerta que nadie había notado jamás..."
+        >Había una vez, en un rincón secreto de la biblioteca de la escuela, una pequeña puerta verde con cerradura de bronce. Sofía, una niña de diez años apasionada por las leyendas, descubrió que detrás de los libros de astronomía brillaba una luz misteriosa. A su lado, su gato Miaufo maulló suavemente, como si supiera exactamente lo que estaba a punto de pasar...</div>
+      </div>
+
+      <!-- Barra de Ayuda Rápida Contextual -->
+      <div class="editor-action-bar">
+        <div class="quick-helpers">
+          <span class="quick-helper-label">¿Necesitas una mano?</span>
+          <button class="agent-chip chip-narrador" data-agent="narrador">
+            🧭 ¿Cómo sigo?
+          </button>
+          <button class="agent-chip chip-corrector" data-agent="corrector">
+            🔍 Revisar ortografía
+          </button>
+          <button class="agent-chip chip-vocabulario" data-agent="vocabulario">
+            ✨ Buscar palabras mágicas
+          </button>
+          <button class="agent-chip chip-ilustrador" data-agent="ilustrador">
+            🎨 Imaginar la escena
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLUMNA 3: El Consejo de Agentes (Chat Creativo) -->
+    <aside class="panel panel-right" aria-label="Consejo de Agentes">
+      <div class="panel-header agent-panel-header">
+        <div class="agent-tabs-header">
+          <h2>🤖 Consejo de Agentes</h2>
+          <p class="panel-sub">Tus compañeros creativos de la fábrica</p>
+        </div>
+      </div>
+
+      <!-- Selector Rápido de Agentes -->
+      <div class="agent-selector-nav">
+        <button class="agent-tab-btn active" data-tab="narrador" id="tabNarrador" title="Narrador Principal">
+          <span class="tab-avatar">🧭</span>
+          <span class="tab-name">Capitán Relato</span>
+        </button>
+        <button class="agent-tab-btn" data-tab="corrector" id="tabCorrector" title="Corrector de Estilo">
+          <span class="tab-avatar">🔍</span>
+          <span class="tab-name">Lupa Sabia</span>
+        </button>
+        <button class="agent-tab-btn" data-tab="vocabulario" id="tabVocabulario" title="Editor de Vocabulario">
+          <span class="tab-avatar">✨</span>
+          <span class="tab-name">Pluma Mágica</span>
+        </button>
+        <button class="agent-tab-btn" data-tab="ilustrador" id="tabIlustrador" title="Ilustrador de Ideas">
+          <span class="tab-avatar">🎨</span>
+          <span class="tab-name">Pincel Curioso</span>
+        </button>
+      </div>
+
+      <!-- Área de Conversación de los Agentes -->
+      <div class="agent-chat-messages" id="agentChatMessages">
+        <!-- Mensaje de bienvenida inicial -->
+        <div class="chat-bubble bubble-narrador">
+          <div class="bubble-header">
+            <span class="agent-mini-avatar">🧭</span>
+            <strong>Capitán Relato (Narrador)</strong>
+            <span class="bubble-time">Ahora</span>
+          </div>
+          <div class="bubble-body">
+            ¡Hola, autor prodigio! 👋 ¡Qué buen inicio tienes con Sofía y su gato sabio Miaufo en la biblioteca!
+            <br><br>
+            ¿Qué crees que debería pasar ahora? ¿Prefieres que encuentren una <strong>llave brillante</strong> entre los libros o que la puerta se abra con un <strong>susurro mágico</strong>?
+          </div>
+          <div class="bubble-actions">
+            <button class="btn-suggestion" data-insert="—¡Mira, Miaufo! ¡Una llave dorada que flotaba en el aire! —exclamó Sofía maravillada.">
+              👉 Encontrar la llave mágica
+            </button>
+            <button class="btn-suggestion" data-insert="De pronto, la puerta verde crujió despacio y una suave brisa con aroma a jazmines los invitó a asomarse.">
+              👉 Que la puerta se abra sola
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulario para Consultar a los Agentes -->
+      <div class="agent-input-container">
+        <!-- Alerta de Consumo de IA y Presupuesto -->
+        <div id="budgetWarningBanner" class="budget-alert-banner hidden">
+          <span id="budgetAlertIcon">⚠️</span>
+          <div class="budget-alert-body">
+            <strong id="budgetAlertTitle">Aviso de Cuota IA:</strong>
+            <span id="budgetAlertMsg">Has consumido el 80% del presupuesto escolar de IA.</span>
+          </div>
+          <button type="button" id="btnDismissBudgetAlert" class="btn-dismiss-alert">&times;</button>
+        </div>
+
+        <!-- Notificación sutil de Moderador -->
+        <div class="moderator-live-badge" id="modStatus">
+          <span class="mod-icon">🛡️</span>
+          <span class="mod-msg">Moderador Pedagógico activo y cuidando la fábrica</span>
+        </div>
+
+        <form id="agentConsultForm" class="consult-form">
+          <input 
+            type="text" 
+            id="agentUserInput" 
+            class="agent-input" 
+            placeholder="Pregúntale a tu agente seleccionado..." 
+            autocomplete="off"
+            maxlength="200"
+          >
+          <button type="submit" id="btnSendAgent" class="btn-send-agent" title="Enviar consulta">
+            <span>🚀</span>
+          </button>
+        </form>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- MODAL: Modo Lectura Libro Mágico -->
+  <div id="readModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-book-container">
+      <button id="btnCloseModal" class="modal-close-btn" title="Cerrar libro">&times;</button>
+      
+      <div class="book-cover">
+        <div class="book-badge">Colección Fábrica de Cuentos 🌟</div>
+        <h2 id="modalBookTitle" class="book-title">La Llave de los Susurros</h2>
+        <p class="book-author">Escrito por: <span class="author-highlight">Joven Autor/a</span></p>
+      </div>
+
+      <div class="book-page">
+        <div class="page-illustration" id="modalBookIllustration">
+          <div class="illus-placeholder">
+            <span>✨🎨✨</span>
+            <p id="modalIllusText">Una mágica biblioteca iluminada por rayos dorados y un gato curioso llamado Miaufo.</p>
+          </div>
+        </div>
+        <div class="page-content" id="modalBookContent">
+          <!-- Se inyecta dinámicamente -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btnReadAloudModal" class="btn-secondary">
+          <span>🔊</span> Leer Cuento Completo
+        </button>
+        <button id="btnPrintModal" class="btn-primary">
+          <span>🖨️</span> Imprimir Libro
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sonido o Alerta Lúdica de Celebración (Confeti visual) -->
+  <div id="celebrationOverlay" class="celebration-overlay hidden">
+    <div class="celebration-card">
+      <span class="star-burst">🌟🎉🌟</span>
+      <h3>¡Objetivo Desbloqueado!</h3>
+      <p id="celebrationMsg">¡Has completado una nueva etapa de tu cuento!</p>
+      <button id="btnCloseCelebration" class="btn-primary">¡Seguir Creando!</button>
+    </div>
+  </div>
+
+  <!-- MODAL: Panel de Evaluación y Seguimiento Docente + Control de Costos IA -->
+  <div id="teacherModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="teacherModalTitle">
+    <div class="modal-teacher-container">
+      <!-- Encabezado del Panel Docente -->
+      <div class="teacher-header">
+        <div class="teacher-header-left">
+          <span class="teacher-header-icon">👩‍🏫</span>
+          <div>
+            <h2 id="teacherModalTitle">Panel de Evaluación, Seguimiento y Gestión IA</h2>
+            <p class="teacher-header-sub">Observación pedagógica de alumnos de 4.º, 5.º y 6.º grado y control de costos de IA</p>
+          </div>
+        </div>
+        <div class="teacher-header-actions">
+          <button id="btnPrintTeacherReport" class="btn-secondary" title="Imprimir informe pedagógico y de costos">
+            <span>🖨️</span> Imprimir Informe
+          </button>
+          <button id="btnCloseTeacherModal" class="modal-close-btn" title="Cerrar panel docente">&times;</button>
+        </div>
+      </div>
+
+      <!-- Métricas Globales Rápidas (KPIs) -->
+      <div class="teacher-kpis-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon icon-blue">👥</div>
+          <div class="kpi-info">
+            <span class="kpi-value" id="kpiTotalStudents">6</span>
+            <span class="kpi-label">Alumnos Registrados</span>
+            <small class="kpi-sub">4.º, 5.º y 6.º Grado (9 a 12 años)</small>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon icon-purple">📚</div>
+          <div class="kpi-info">
+            <span class="kpi-value" id="kpiStoriesCount">14</span>
+            <span class="kpi-label">Cuentos en Taller</span>
+            <small class="kpi-sub" id="kpiStoriesFinished">9 finalizados • 5 en proceso</small>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon icon-green">📈</div>
+          <div class="kpi-info">
+            <span class="kpi-value" id="kpiAvgAutonomy">76%</span>
+            <span class="kpi-label">Autonomía Media</span>
+            <small class="kpi-sub">Soberanía creadora del alumno</small>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon icon-amber">💳</div>
+          <div class="kpi-info">
+            <span class="kpi-value" id="kpiTotalCost">$1.42</span>
+            <span class="kpi-label">Gasto IA Total (<span id="kpiBudgetLimit">$5.00</span>)</span>
+            <small class="kpi-sub" id="kpiTotalTokens">28.450 tokens consumidos</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navegación de Pestañas del Panel Docente -->
+      <div class="teacher-tabs-nav">
+        <button class="teacher-nav-btn active" data-ttab="evaluacion" id="navBtnEval">
+          <span>📊</span> Evaluación y Seguimiento de Alumnos
+        </button>
+        <button class="teacher-nav-btn" data-ttab="costos" id="navBtnCostos">
+          <span>💳</span> Control de Costo y Tokens de IA
+        </button>
+        <button class="teacher-nav-btn" data-ttab="rubrica" id="navBtnRubrica">
+          <span>📋</span> Rúbrica Formativa y Avance Global
+        </button>
+      </div>
+
+      <!-- CUERPO DE PESTAÑAS -->
+      <div class="teacher-modal-body">
+        
+        <!-- PESTAÑA 1: EVALUACIÓN Y SEGUIMIENTO -->
+        <section id="tabContentEvaluacion" class="teacher-tab-content active">
+          <!-- Filtros de búsqueda -->
+          <div class="teacher-filter-bar">
+            <div class="filter-group">
+              <label for="filterGrade">Grado escolar:</label>
+              <select id="filterGrade" class="filter-select">
+                <option value="todos">Todos los grados (4.º, 5.º, 6.º)</option>
+                <option value="4">4.º Grado</option>
+                <option value="5">5.º Grado</option>
+                <option value="6">6.º Grado</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="filterAge">Edad:</label>
+              <select id="filterAge" class="filter-select">
+                <option value="todas">Todas las edades</option>
+                <option value="9">9 años</option>
+                <option value="10">10 años</option>
+                <option value="11">11 años</option>
+                <option value="12">12 años</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="filterTendency">Evolución:</label>
+              <select id="filterTendency" class="filter-select">
+                <option value="todos">Todas las tendencias</option>
+                <option value="avance">📈 Con avances destacados</option>
+                <option value="atencion">⚠️ Requieren apoyo / retroceso</option>
+                <option value="estable">➡️ Desempeño constante</option>
+              </select>
+            </div>
+
+            <div class="filter-group search-filter">
+              <label for="searchStudent">Buscar alumno:</label>
+              <div class="search-input-wrapper">
+                <span>🔍</span>
+                <input type="text" id="searchStudent" placeholder="Nombre de estudiante...">
+              </div>
+            </div>
+          </div>
+
+          <!-- Disposición Dos Columnas: Lista + Ficha Detalle -->
+          <div class="student-eval-layout">
+            <!-- Columna Izquierda: Listado de Alumnos -->
+            <div class="student-list-container">
+              <div class="student-list-header">
+                <h3>Listado de Estudiantes (<span id="studentsFilteredCount">6</span>)</h3>
+                <span class="info-badge">Selecciona para evaluar</span>
+              </div>
+              <div class="student-cards-feed" id="studentCardsFeed">
+                <!-- Se inyecta dinámicamente con JS -->
+              </div>
+            </div>
+
+            <!-- Columna Derecha: Ficha Pedagógica Individual -->
+            <div class="student-detail-container" id="studentDetailContainer">
+              <!-- Se renderiza con JS según el alumno seleccionado -->
+            </div>
+          </div>
+        </section>
+
+        <!-- PESTAÑA 2: CONTROL DE COSTO Y TOKENS IA -->
+        <section id="tabContentCostos" class="teacher-tab-content">
+          <div class="costs-dashboard-layout">
+            
+            <!-- Barra y Control Principal de Presupuesto -->
+            <div class="cost-budget-banner">
+              <div class="budget-status-header">
+                <div>
+                  <h3>Estado del Presupuesto de Inteligencia Artificial</h3>
+                  <p class="budget-desc">Gestiona de forma transparente el gasto real de los modelos de lenguaje (LLM) asignados al aula.</p>
+                </div>
+                <div class="budget-badge-pill pill-safe" id="budgetStatusPill">
+                  <span>🟢</span> Consumo en Rango Seguro
+                </div>
+              </div>
+
+              <!-- Gran Medidor de Presupuesto -->
+              <div class="budget-progress-container">
+                <div class="budget-progress-labels">
+                  <span>Consumido: <strong id="budgetSpentText">$1.42 USD</strong> (<span id="budgetSpentPercent">28.4%</span>)</span>
+                  <span>Presupuesto Máximo: <strong id="budgetMaxText">$5.00 USD</strong></span>
+                </div>
+                <div class="budget-meter-bar">
+                  <div id="budgetMeterFill" class="budget-meter-fill fill-green" style="width: 28.4%"></div>
+                  <div class="budget-threshold-marker threshold-80" title="Umbral de advertencia (80%)"></div>
+                </div>
+                <div class="budget-meter-legend">
+                  <span class="legend-safe">🟢 Normal (&lt; 70%)</span>
+                  <span class="legend-warn">🟡 Advertencia (70% - 99%)</span>
+                  <span class="legend-danger">🔴 Límite alcanzado (100% - Consultas en pausa)</span>
+                </div>
+              </div>
+
+              <!-- Tarjetas de métricas de tokens -->
+              <div class="tokens-stats-row">
+                <div class="token-mini-stat">
+                  <span class="token-stat-num" id="statInputTokens">18.200</span>
+                  <span class="token-stat-lbl">Tokens Entrada (Prompt)</span>
+                </div>
+                <div class="token-mini-stat">
+                  <span class="token-stat-num" id="statOutputTokens">10.250</span>
+                  <span class="token-stat-lbl">Tokens Salida (Respuestas)</span>
+                </div>
+                <div class="token-mini-stat">
+                  <span class="token-stat-num" id="statRemainingTokens">~71.550</span>
+                  <span class="token-stat-lbl">Tokens Disponibles</span>
+                </div>
+                <div class="token-mini-stat">
+                  <span class="token-stat-num" id="statTotalInteractions">48</span>
+                  <span class="token-stat-lbl">Consultas a Agentes</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dos Columnas: Configuración & Recarga + Desglose por Agente -->
+            <div class="costs-middle-grid">
+              <!-- Panel de Recarga y Ajuste de Presupuesto -->
+              <div class="cost-card-box">
+                <div class="box-header">
+                  <h4>💳 Recarga y Configuración de Cuota Escolar</h4>
+                  <span class="badge-subtle">Simulador Institucional</span>
+                </div>
+
+                <div class="recharge-section">
+                  <label class="section-label">Aumentar presupuesto / Recargar saldo de IA:</label>
+                  <p class="section-desc">Selecciona o ingresa el monto para simular el pago institucional y ampliar la cuota:</p>
+                  
+                  <div class="quick-recharge-btns">
+                    <button type="button" class="btn-recharge-chip" data-amount="2.00">+$2.00 USD (~15k tok)</button>
+                    <button type="button" class="btn-recharge-chip" data-amount="5.00">+$5.00 USD (~40k tok)</button>
+                    <button type="button" class="btn-recharge-chip" data-amount="10.00">+$10.00 USD (~90k tok)</button>
+                  </div>
+
+                  <div class="custom-recharge-row">
+                    <div class="currency-input-wrap">
+                      <span>$</span>
+                      <input type="number" id="customRechargeInput" min="1" max="100" step="0.5" placeholder="Otro monto...">
+                    </div>
+                    <button type="button" id="btnExecuteRecharge" class="btn-primary-recharge">
+                      💳 Recargar Saldo
+                    </button>
+                  </div>
+
+                  <div id="rechargeFeedback" class="recharge-alert hidden">
+                    ¡Saldo recargado exitosamente! Las consultas a los agentes están 100% activas.
+                  </div>
+                </div>
+
+                <hr class="divider-subtle">
+
+                <!-- Configuración de Límites -->
+                <div class="budget-limits-form">
+                  <label class="section-label">Configurar Límite Máximo Mensual:</label>
+                  <div class="limit-input-row">
+                    <div class="currency-input-wrap">
+                      <span>$</span>
+                      <input type="number" id="inputMaxBudgetSetting" min="1" max="50" step="0.5" value="5.00">
+                    </div>
+                    <button type="button" id="btnSaveBudgetLimit" class="btn-secondary">Guardar Límite</button>
+                  </div>
+                  <small class="help-text">Al alcanzar este valor en el mes, la plataforma pausará amablemente las consultas para evitar costos imprevistos.</small>
+                </div>
+              </div>
+
+              <!-- Desglose de Consumo por Agente -->
+              <div class="cost-card-box">
+                <div class="box-header">
+                  <h4>🤖 Consumo y Costo por Agente</h4>
+                  <span class="badge-subtle">Eficiencia de Modelos</span>
+                </div>
+
+                <div class="agent-costs-breakdown" id="agentCostsBreakdown">
+                  <!-- Se inyecta dinámicamente con barras y porcentajes -->
+                </div>
+
+                <div class="safe-cost-note">
+                  <span>🛡️</span>
+                  <small><strong>Moderador Pedagógico:</strong> Filtro ético y de seguridad escolar ejecutado en modo balanceado de bajo consumo de tokens.</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabla Detallada de Consumo por Alumno -->
+            <div class="cost-card-box student-tokens-table-card">
+              <div class="box-header">
+                <h4>👥 Consumo de Tokens y Costo por Estudiante</h4>
+                <span class="badge-subtle">Transparencia Individual</span>
+              </div>
+
+              <div class="table-responsive">
+                <table class="tokens-table" id="studentsCostTable">
+                  <thead>
+                    <tr>
+                      <th>Alumno/a</th>
+                      <th>Grado y Edad</th>
+                      <th>Consultas</th>
+                      <th>Tokens Consumidos</th>
+                      <th>Costo Acumulado</th>
+                      <th>% del Presupuesto</th>
+                      <th>Estado de Cuota</th>
+                    </tr>
+                  </thead>
+                  <tbody id="studentsCostTableBody">
+                    <!-- Se inyecta dinámicamente -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- PESTAÑA 3: RÚBRICA FORMATIVA Y GUÍA -->
+        <section id="tabContentRubrica" class="teacher-tab-content">
+          <div class="rubric-view-layout">
+            <div class="rubric-header-box">
+              <h3>Matriz Pedagógica de Evaluación y Autonomía Digital</h3>
+              <p>Esta rúbrica permite contrastar el nivel de soberanía creadora del alumno frente a las sugerencias de la Inteligencia Artificial en 4.º, 5.º y 6.º grado.</p>
+            </div>
+
+            <div class="rubric-table-card">
+              <table class="rubric-table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Criterio Curricular</th>
+                    <th style="width: 26%;">🟡 Nivel Inicial (En proceso)</th>
+                    <th style="width: 27%;">🟢 Nivel Avanzado (Logrado)</th>
+                    <th style="width: 27%;">🌟 Nivel Experto (Sobresaliente)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Soberanía y Autonomía Creativa</strong></td>
+                    <td>Acepta sugerencias literales de los agentes sin modificarlas ni reescribirlas (Autonomía &lt; 60%).</td>
+                    <td>Selecciona sugerencias afines y las integra respetando el sentido de su propio texto (Autonomía 60% - 80%).</td>
+                    <td>Modifica, combina y recrea las propuestas de los agentes, manteniendo un tono propio y original (Autonomía &gt; 80%).</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Estructura Narrativa</strong></td>
+                    <td>Dificultad para deslindar el inicio del nudo o desenlaces abruptos.</td>
+                    <td>Respeta la estructura canónica en tres momentos con progresión lógica.</td>
+                    <td>Maneja transiciones fluidas, conflicto bien articulado y desenlace coherente y emotivo.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Recursos Léxicos y Sensoriales</strong></td>
+                    <td>Vocabulario básico y reiterativo; pocos adjetivos o metáforas.</td>
+                    <td>Aplica sinónimos y recursos sensoriales sugeridos por Pluma Mágica.</td>
+                    <td>Genera comparaciones poéticas originales y describe texturas, aromas y atmósferas vivas.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Revisión Ortográfica y Cohesión</strong></td>
+                    <td>Omite correcciones de Lupa Sabia; errores reiterados en tildes y mayúsculas.</td>
+                    <td>Corrige la mayoría de las observaciones y emplea la raya de diálogo correctamente.</td>
+                    <td>Autocorrección reflexiva y comprensión activa de la regla gramatical aplicada.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Ciudadanía y Convivencia Digital</strong></td>
+                    <td>Intenta ingresar datos privados o situaciones no acordes a la norma escolar.</td>
+                    <td>Respeta las pautas éticas del taller y cuida su identidad.</td>
+                    <td>Comprende el rol protector del Moderador y promueve valores de empatía y fantasía constructiva.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="teacher-advice-box">
+              <span class="advice-icon">💡</span>
+              <div>
+                <strong>Consejo didáctico para el docente:</strong>
+                <p>Si un estudiante presenta una autonomía baja (&lt; 60%), no restrinjas el acceso a los agentes. En cambio, proponle un desafío de aula: <em>"Antes de consultar al Capitán Relato, escribe tres oraciones con lo que tú creas que sucederá"</em>. El andamiaje debe retirarse gradualmente para empoderar su voz.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Autenticación Supabase (Docente y Alumno) -->
+  <div id="authModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+    <div class="modal-auth-container">
+      <button id="btnCloseAuthModal" class="modal-close-btn" title="Cerrar ventana">&times;</button>
+      
+      <div class="auth-header">
+        <span class="auth-header-icon">🏰✨</span>
+        <h3 id="authModalTitle">Acceso a la Fábrica de Cuentos</h3>
+        <p class="auth-subtitle">Ingresa como docente o con tu código de aula como alumno</p>
+      </div>
+
+      <!-- Pestañas de Acceso -->
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab-btn active" data-authtab="alumno" id="tabBtnAuthAlumno">
+          🧒 Soy Alumno/a
+        </button>
+        <button type="button" class="auth-tab-btn" data-authtab="docente" id="tabBtnAuthDocente">
+          👩‍🏫 Soy Docente
+        </button>
+      </div>
+
+      <!-- FORMULARIO 1: ALUMNO (Sin Email - Código de Acceso + PIN) -->
+      <div id="authContentAlumno" class="auth-tab-content active">
+        <form id="formAuthAlumno" class="auth-form">
+          <div class="auth-help-card">
+            <span>🛡️</span>
+            <small><strong>Privacidad Protegida:</strong> No necesitas correo electrónico. Ingresa el código y clave que te dio tu maestro/a.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="alumnoCodigoAcceso">Código de Alumno o Aula:</label>
+            <input type="text" id="alumnoCodigoAcceso" class="auth-input" placeholder="Ej: SOFI-5B-24 o MATEO-4A" required autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label for="alumnoPinSeguridad">Clave de 4 dígitos o PIN:</label>
+            <input type="password" id="alumnoPinSeguridad" class="auth-input" placeholder="••••" maxlength="6" value="1234" required>
+          </div>
+
+          <div id="alumnoAuthMsg" class="auth-feedback-msg hidden"></div>
+
+          <button type="submit" class="btn-primary auth-submit-btn">
+            🚀 Entrar a mi Taller de Escritura
+          </button>
+        </form>
+      </div>
+
+      <!-- FORMULARIO 2: DOCENTE (Email + Password) -->
+      <div id="authContentDocente" class="auth-tab-content">
+        <form id="formAuthDocente" class="auth-form">
+          <div class="form-group">
+            <label for="docenteEmail">Correo electrónico del docente:</label>
+            <input type="email" id="docenteEmail" class="auth-input" placeholder="maestro@escuela.edu.ar" required>
+          </div>
+
+          <div class="form-group">
+            <label for="docentePassword">Contraseña:</label>
+            <input type="password" id="docentePassword" class="auth-input" placeholder="Contraseña segura" required>
+          </div>
+
+          <div id="docenteAuthMsg" class="auth-feedback-msg hidden"></div>
+
+          <div class="auth-btn-row">
+            <button type="submit" class="btn-primary auth-submit-btn">
+              👩‍🏫 Iniciar Sesión Docente
+            </button>
+            <button type="button" id="btnRegisterDocente" class="btn-secondary">
+              Crear Cuenta
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="auth-footer-note">
+        <small>Conectado con backend seguro <strong>Supabase</strong> • Cifrado de extremo a extremo</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase JS Client SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Módulo Cliente de Supabase -->
+  <script src="supabaseClient.js"></script>
+  <!-- Lógica Principal del Taller -->
+  <script src="app.js"></script>
+</body>
+</html>
